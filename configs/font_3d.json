@@ -1,0 +1,113 @@
+{
+  "name": "font_3d",
+  "description": "3D extruded DejaVu glyphs, 128^3",
+  "dim": 3,
+  "arch": {
+    "class": "FNO3D",
+    "max_res": 128,
+    "k_max": 0.25,
+    "width": 32,
+    "n_modes": 16,
+    "n_layers": 6,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "semi_lagrangian",
+    "mass_renormalization": true,
+    "clamp_min": 0.0,
+    "notes": "First-order single-backtrace semi-Lagrangian advection, as used in training and in the trainer's evaluation. The evaluation rollout clamps and renormalises total mass every step; the training rollout with --peak-norm skipped the renormalisation."
+  },
+  "data": {
+    "sampler": "shapenet",
+    "data_path_src": "data/font_3d_volresize_n8000_128.pt",
+    "data_path_tgt": "data/font_3d_volresize_n8000_128.pt",
+    "n_src": 1364,
+    "n_tgt": 1364,
+    "resolution": 128,
+    "normalization": "peak",
+    "source": "62 glyphs (0-9, A-Z, a-z) x 22 DejaVu font faces",
+    "notes": "Glyphs rendered at 256, extruded (depth 0.3*max(H,W)), init-fill 0.7, Gaussian blur sigma 0.7 voxel, trilinearly resized to total mass 8000 (margin 0.9), clipped to [0,1]. Built with voxelize_font_3d.py. DejaVu fonts are freely redistributable."
+  },
+  "training": {
+    "entry_point": "viot.train_3d",
+    "original_entry_point": "fluidot_improved.train_3d",
+    "args": {
+      "resolution": 128,
+      "sampler": "shapenet",
+      "data-path-src": "data/font_3d_volresize_n8000_128.pt",
+      "data-path-tgt": "data/font_3d_volresize_n8000_128.pt",
+      "batch-size": 6,
+      "lr": 5e-05,
+      "n-steps": 1500,
+      "n-rollout": 10,
+      "n-test": 10,
+      "n-infer-steps": 50,
+      "k-max": 0.25,
+      "fno-width": 32,
+      "fno-modes": 16,
+      "fno-layers": 6,
+      "bb-visc-only": true,
+      "lambda-ke": 0.0,
+      "lambda-mu": 0.0025,
+      "lambda-mu-warmup": 0,
+      "lambda-terminal": 10.0,
+      "amp": true,
+      "checkpoint": true,
+      "log-every": 100,
+      "no-scheduler": true,
+      "grad-clip": 1.0,
+      "raw-sampler": true,
+      "peak-norm": true,
+      "init-from": "results_spectral_3d/exp53_font_continue_ke0_1gpu/spectral_bb_visc_3d_model_best.pt",
+      "advection": "semi_lagrangian"
+    },
+    "steps": 1500,
+    "gpus": 1,
+    "global_batch_size": 6,
+    "optimizer": "Adam",
+    "lr_schedule": "constant (--no-scheduler)",
+    "grad_clip": 1.0,
+    "wall_time_s": 34113,
+    "hardware": "1x A100-80GB, torch 2.11.0+cu130",
+    "init": "continuation (not released intermediates): exp52 fresh 2-GPU run (lambda_ke 0.1, lambda_mu 0.003, lr 1e-4, init-scale 10; stopped at ~step 3400, best = step 3000) -> exp53 (3000 steps from exp52 best, 1 GPU, lambda_ke 0, lambda_mu 0.003, lr 1e-4; best = final = step 3000) -> this run (1500 steps from exp53 best). --init-from loads all parameters except trunc_mask.",
+    "provenance": "original launch script scripts/_run_exp68_font_continue_mu00025.sh; training log exp68_font_continue_mu00025_1gpu.log",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_3d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m viot.train_3d --resolution 128 --sampler shapenet --data-path-src data/font_3d_volresize_n8000_128.pt --data-path-tgt data/font_3d_volresize_n8000_128.pt --batch-size 6 --lr 5e-5 --n-steps 1500 --n-rollout 10 --n-test 10 --n-infer-steps 50 --k-max 0.25 --fno-width 32 --fno-modes 16 --fno-layers 6 --bb-visc-only --lambda-ke 0.0 --lambda-mu 0.0025 --lambda-mu-warmup 0 --lambda-terminal 10.0 --amp --checkpoint --log-every 100 --no-scheduler --grad-clip 1.0 --raw-sampler --peak-norm --init-from results_spectral_3d/exp53_font_continue_ke0_1gpu/spectral_bb_visc_3d_model_best.pt --advection semi_lagrangian",
+    "original_args_note": "Relative to the original launch command: --data-path-src .data/font_3d_volresize_n8000_128.pt -> data/font_3d_volresize_n8000_128.pt; --data-path-tgt .data/font_3d_volresize_n8000_128.pt -> data/font_3d_volresize_n8000_128.pt. Data files are expected under data/ (see scripts/data/README.md).",
+    "release_script": "scripts/train/font_3d.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 1000,
+    "of_steps": 1500,
+    "source_experiment": "exp68_font_continue_mu00025_1gpu",
+    "source_file": "spectral_bb_visc_3d_model_best.pt",
+    "source_sha256": "84048f89c2be4ed3c70205dabd8602768acb99fc2f35c5c19e9d1cbb0d644a9a",
+    "source_size_bytes": 810082953,
+    "file": "model.safetensors",
+    "sha256": "8eb0f105379e2c842b66668fbd3bcba652a7132522a5b4a34ba825dff9f8d112",
+    "size_bytes": 810066020,
+    "dtype": "float32",
+    "n_tensors": 59,
+    "n_params": 201450019,
+    "n_elements_incl_trunc_mask": 202514979,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 25.3266,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Fig. teaser, row 3 (3D 'SMOKE' glyph chain)",
+      "Fig. appendix_font_chains (whether model_best or final weights were used was not recorded)",
+      "Table heldout (held-out evaluation; uses this checkpoint)",
+      "Table momentum_headline (momentum residual; uses this checkpoint)",
+      "Table infer_time (inference timing)",
+      "Table headline (architecture and loss coefficients of this run)"
+    ]
+  }
+}

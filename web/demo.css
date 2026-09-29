@@ -1,0 +1,57 @@
+.demo-section { padding: 44px 0 20px; border-top: 1px solid var(--line); margin-bottom: 45px; scroll-margin-top: 20px; }
+.demo-section h2 { text-align: center; margin-bottom: 12px; }
+.demo-intro { max-width: 760px; margin: 0 auto 30px; color: var(--muted); text-align: center; font-size: 15px; }
+
+.viot-demo { --panel-bg: #0b0b10; }
+.demo-panels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.demo-panel { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.demo-panel figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14px; line-height: 1.6; }
+.demo-panel figcaption sub { line-height: 0; }
+.demo-label { font-weight: 650; }
+.demo-hint { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.demo-canvas-wrap { position: relative; border-radius: 8px; overflow: hidden; background: var(--panel-bg); box-shadow: 0 0 0 1px #d6d6df; }
+.demo-canvas-wrap canvas { display: block; width: 100%; aspect-ratio: 1; touch-action: none; }
+.demo-panel:not(.demo-panel--out) canvas { cursor: crosshair; }
+.demo-panel canvas.is-locked { cursor: default; }
+.viot-demo.is-running .demo-panel canvas { cursor: progress; }
+.demo-panel--out canvas { image-rendering: auto; }
+.demo-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; color: #8d8b9c; font-size: 14px; text-align: center; pointer-events: none; }
+
+.demo-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 22px; background: rgba(11, 11, 16, .82); color: #e9e8f2; text-align: center; font-size: 14px; line-height: 1.5; }
+.demo-overlay p { max-width: 280px; }
+.demo-overlay .button { border-color: #fff; background: #fff; color: var(--ink); }
+.demo-overlay .button:hover { background: #ecebf5; }
+.demo-progress { width: 70%; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+.demo-progress > div { width: 0; height: 100%; background: #fcfea4; transition: width .15s linear; }
+
+.demo-scrub { width: 100%; margin: 2px 0 0; accent-color: var(--accent); }
+
+.demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-top: 20px; }
+.demo-controls .button { padding: 7px 18px; background: #fff; }
+.demo-controls .button-primary { background: var(--ink); color: #fff; }
+.demo-controls .button:disabled { opacity: .45; cursor: default; }
+.demo-controls .button:disabled:hover { background: #fff; }
+.demo-controls .button-primary:disabled:hover { background: var(--ink); }
+.demo-controls .text-button:disabled { color: var(--muted); opacity: .6; cursor: default; text-decoration: none; }
+.demo-sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+.demo-brush { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.demo-brush input { width: 110px; accent-color: var(--accent); }
+.demo-brush output { min-width: 3.2em; font-variant-numeric: tabular-nums; }
+
+.demo-examples { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; font-size: 14px; color: var(--muted); }
+.demo-chip { padding: 3px 13px; border: 1px solid #dcdce4; border-radius: 16px; background: #fff; color: var(--ink); font-size: 14px; }
+.demo-chip:hover { background: #f2f0f8; }
+.demo-chip:disabled { opacity: .45; cursor: default; background: #fff; }
+
+.demo-history { display: flex; align-items: center; gap: 8px; margin-top: 18px; padding-bottom: 4px; overflow-x: auto; }
+.demo-history canvas { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 4px; box-shadow: 0 0 0 1px #d6d6df; }
+.demo-arrow { color: var(--muted); font-size: 15px; }
+
+.demo-status { min-height: 1.7em; margin-top: 12px; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.demo-note { max-width: 920px; margin: 18px auto 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+@media (max-width: 760px) {
+  .demo-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .demo-panel--out { grid-column: 1 / -1; width: min(100%, 420px); margin-inline: auto; }
+  .demo-sep { display: none; }
+}

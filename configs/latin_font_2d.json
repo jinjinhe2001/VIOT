@@ -1,0 +1,99 @@
+{
+  "name": "latin_font_2d",
+  "description": "2D Latin glyphs (A-Z, a-z, 0-9), 256^2",
+  "dim": 2,
+  "arch": {
+    "class": "FNO2D",
+    "max_res": 256,
+    "k_max": 0.0625,
+    "width": 64,
+    "n_modes": 16,
+    "n_layers": 8,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "semi_lagrangian",
+    "mass_renormalization": true,
+    "clamp_min": 0.0,
+    "notes": "Trained and evaluated by the trainer with first-order single-backtrace semi-Lagrangian advection. The paper's glyph-chain figures used WENO advection at inference."
+  },
+  "data": {
+    "sampler": "pool",
+    "data_path": "data/font_letters_256.pt",
+    "n_samples": 496,
+    "resolution": 256,
+    "normalization": "sum",
+    "source": "62 glyphs (A-Z, a-z, 0-9) x 8 font faces, face-major order",
+    "notes": "Participation-ratio normalised (0.197*H*W). The build script and the identity of the 8 font faces were not recovered, so this pool cannot be regenerated exactly from the release."
+  },
+  "training": {
+    "entry_point": "viot.train_2d",
+    "original_entry_point": "fluidot_improved.train_2d",
+    "args": {
+      "resolution": 256,
+      "sampler": "pool",
+      "data-path": "data/font_letters_256.pt",
+      "batch-size": 64,
+      "lr": 0.0001,
+      "n-steps": 40000,
+      "n-rollout": 10,
+      "n-test": 20,
+      "n-infer-steps": 50,
+      "k-max": 0.0625,
+      "arch": "fno",
+      "fno-width": 64,
+      "fno-modes": 16,
+      "fno-layers": 8,
+      "bb-visc-only": true,
+      "lambda-ke": 1.0,
+      "lambda-mu": 0.05,
+      "advection": "semi_lagrangian"
+    },
+    "steps": 40000,
+    "gpus": 1,
+    "global_batch_size": 64,
+    "optimizer": "Adam",
+    "lr_schedule": "cosine, 1e-4 -> 1e-6 over n-steps",
+    "grad_clip": 1.0,
+    "wall_time_s": 28722,
+    "hardware": "1x H200, torch 2.6.0+cu124",
+    "provenance": "No launch script was retained. Arguments reconstructed from the training log (resolution, k_max 0.0625, width 64 / modes 16 / 8 layers, 40000 steps, data path, cosine LR consistent with 40000 steps; lambda_mu 0.05 and lambda_ke 1.0 are consistent with the logged loss decomposition) and the checkpoint shapes. --batch-size 64 comes from the reconstructed recipe and is not printed in the log.",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_2d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m viot.train_2d --resolution 256 --sampler pool --data-path data/font_letters_256.pt --batch-size 64 --lr 1e-4 --n-steps 40000 --n-rollout 10 --n-test 20 --n-infer-steps 50 --k-max 0.0625 --arch fno --fno-width 64 --fno-modes 16 --fno-layers 8 --bb-visc-only --lambda-ke 1.0 --lambda-mu 0.05 --advection semi_lagrangian",
+    "original_args_note": "Relative to the original launch command: --sampler chinese -> pool (alias); --data-path .data/font_letters_256.pt -> data/font_letters_256.pt. Data files are expected under data/ (see scripts/data/README.md).",
+    "release_script": "scripts/train/latin_font_2d.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 35000,
+    "of_steps": 40000,
+    "source_experiment": "exp31_fno_font_256_bb_visc",
+    "source_file": "spectral_bb_visc_model_best.pt",
+    "source_sha256": "15180d25fe05177c7a905cec463fbe8d4d0c1e629ad04ab8fa2c87d74f6688d0",
+    "source_size_bytes": 135325089,
+    "file": "model.safetensors",
+    "sha256": "e5b4044d3bfa92cf497a1a943525fe6113c52035d475abb23a96dfee1eabadc9",
+    "size_bytes": 135304356,
+    "dtype": "float32",
+    "n_tensors": 75,
+    "n_params": 33791169,
+    "n_elements_incl_trunc_mask": 33824193,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 0.001774,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Fig. appendix_glyph_chains (glyph chains, WENO advection)",
+      "Table heldout (held-out evaluation; uses this checkpoint)",
+      "Table momentum_headline (momentum residual; uses this checkpoint)",
+      "Table infer_time (inference timing)",
+      "Table headline (architecture and loss coefficients of this run)"
+    ]
+  }
+}

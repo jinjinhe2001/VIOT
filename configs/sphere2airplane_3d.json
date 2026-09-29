@@ -1,0 +1,113 @@
+{
+  "name": "sphere2airplane_3d",
+  "description": "3D sphere to ShapeNet airplanes, 128^3",
+  "dim": 3,
+  "arch": {
+    "class": "FNO3D",
+    "max_res": 128,
+    "k_max": 0.25,
+    "width": 32,
+    "n_modes": 16,
+    "n_layers": 6,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "semi_lagrangian",
+    "mass_renormalization": true,
+    "clamp_min": 0.0,
+    "notes": "First-order single-backtrace semi-Lagrangian advection, as used in training and in the trainer's evaluation. The evaluation rollout clamps and renormalises total mass every step; the training rollout with --peak-norm skipped the renormalisation."
+  },
+  "data": {
+    "sampler": "shapenet",
+    "data_path_src": "data/sphere_match_airplanes_s02_128.pt",
+    "data_path_tgt": "data/shapenet_airplanes_wtt_volresize_n8000_128.pt",
+    "n_src": 8,
+    "n_tgt": 4045,
+    "resolution": 128,
+    "normalization": "peak",
+    "source": "soft sphere -> watertight ShapeNetCore.v2 airplanes (synset 02691156)",
+    "notes": "Source: 8 identical copies of a sigmoid soft ball (softness 0.2) whose total mass matches the targets (~7967). Targets: watertight airplane meshes voxelized at 128^3 and filled, Gaussian blur sigma 0.7 voxel, resized to total mass 8000 (init-fill 0.7, margin 0.9). --raw-sampler --peak-norm: clamp only, peak density 1. ShapeNet terms apply; the voxel data is not shipped."
+  },
+  "training": {
+    "entry_point": "viot.train_3d",
+    "original_entry_point": "fluidot_improved.train_3d",
+    "launcher": "torch.distributed.run --standalone --nproc_per_node=2",
+    "args": {
+      "resolution": 128,
+      "sampler": "shapenet",
+      "data-path-src": "data/sphere_match_airplanes_s02_128.pt",
+      "data-path-tgt": "data/shapenet_airplanes_wtt_volresize_n8000_128.pt",
+      "batch-size": 6,
+      "lr": 0.0001,
+      "n-steps": 5000,
+      "n-rollout": 10,
+      "n-test": 10,
+      "n-infer-steps": 50,
+      "k-max": 0.25,
+      "fno-width": 32,
+      "fno-modes": 16,
+      "fno-layers": 6,
+      "bb-visc-only": true,
+      "lambda-ke": 0.0,
+      "lambda-mu": 0.003,
+      "lambda-mu-warmup": 1000,
+      "lambda-terminal": 10.0,
+      "amp": true,
+      "checkpoint": true,
+      "log-every": 100,
+      "no-scheduler": true,
+      "grad-clip": 1.0,
+      "raw-sampler": true,
+      "peak-norm": true,
+      "init-scale": 10.0,
+      "advection": "semi_lagrangian"
+    },
+    "steps": 5000,
+    "gpus": 2,
+    "global_batch_size": 12,
+    "optimizer": "Adam",
+    "lr_schedule": "constant (--no-scheduler)",
+    "grad_clip": 1.0,
+    "wall_time_s": 58903,
+    "hardware": "2x A100-80GB (DDP), torch 2.11.0+cu130",
+    "init": "from scratch (--init-scale 10.0 on the last projection layer)",
+    "provenance": "original launch script scripts/launch_exp49_sphere_airplane_mu001_midpoint.sh; training log exp49_sphere_to_airplanes_mu0003_kmax025_macc_2gpu.log",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_3d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m torch.distributed.run --standalone --nproc_per_node=2 -m viot.train_3d --resolution 128 --sampler shapenet --data-path-src data/sphere_match_airplanes_s02_128.pt --data-path-tgt data/shapenet_airplanes_wtt_volresize_n8000_128.pt --batch-size 6 --lr 1e-4 --n-steps 5000 --n-rollout 10 --n-test 10 --n-infer-steps 50 --k-max 0.25 --fno-width 32 --fno-modes 16 --fno-layers 6 --bb-visc-only --lambda-ke 0.0 --lambda-mu 0.003 --lambda-mu-warmup 1000 --lambda-terminal 10.0 --amp --checkpoint --log-every 100 --no-scheduler --grad-clip 1.0 --raw-sampler --peak-norm --init-scale 10.0 --advection semi_lagrangian",
+    "original_args_note": "Relative to the original launch command: --data-path-src .data/sphere_match_airplanes_s02_128.pt -> data/sphere_match_airplanes_s02_128.pt; --data-path-tgt .data/shapenet_airplanes_wtt_volresize_n8000_128.pt -> data/shapenet_airplanes_wtt_volresize_n8000_128.pt. Data files are expected under data/ (see scripts/data/README.md).",
+    "release_script": "scripts/train/sphere2airplane_3d.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 4000,
+    "of_steps": 5000,
+    "source_experiment": "exp49_sphere_to_airplanes_128_mu0003_kmax025_macc_2gpu",
+    "source_file": "spectral_bb_visc_3d_model_best.pt",
+    "source_sha256": "35eb69c64958abb72030ed81098472a48b0981627b1e7a4c038e3e25f1a13c18",
+    "source_size_bytes": 810082953,
+    "file": "model.safetensors",
+    "sha256": "ed5339b7dab953677eb1e68597a73d5d4f5108d9036e0b6114ceaff241890573",
+    "size_bytes": 810066052,
+    "dtype": "float32",
+    "n_tensors": 59,
+    "n_params": 201450019,
+    "n_elements_incl_trunc_mask": 202514979,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 18.6137,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Fig. teaser, row 5 (airplane shape1717)",
+      "Figs. appendix_airplane_chains_part1-3 ('shape' columns; the 'pair' columns were probably extracted from the final-weight trainer rollout)",
+      "Table heldout (held-out evaluation; uses this checkpoint) (paper-checkpoint row; the held-out-target retrain is a separate, unreleased model)",
+      "Table infer_time (inference timing)",
+      "Table headline (architecture and loss coefficients of this run)"
+    ]
+  }
+}

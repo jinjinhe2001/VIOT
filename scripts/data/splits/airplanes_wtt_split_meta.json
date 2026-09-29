@@ -1,0 +1,10 @@
+{
+ "source": "shapenet_airplanes_wtt_volresize_n8000_128.pt",
+ "split": "PC15k official: train+val -> train, test -> held-out",
+ "n_train": 3237,
+ "n_test": 808,
+ "n_missing": 0,
+ "train_mean_sum": 7964.171875,
+ "sphere_radius": 12.378944396972656,
+ "sphere_softness": 0.2
+}

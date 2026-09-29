@@ -1,0 +1,97 @@
+{
+  "name": "mnist_2d",
+  "description": "2D MNIST digits, 256^2 (interactive demo model)",
+  "dim": 2,
+  "arch": {
+    "class": "FNO2D",
+    "max_res": 256,
+    "k_max": 0.25,
+    "width": 64,
+    "n_modes": 32,
+    "n_layers": 8,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "maccormack",
+    "mass_renormalization": true,
+    "clamp_min": 0.0
+  },
+  "data": {
+    "sampler": "mnist",
+    "resolution": 256,
+    "normalization": "sum",
+    "source": "torchvision MNIST, full 60k training split, sampled on the fly",
+    "notes": "Per sample: bilinear upsampling 28->256, random Gaussian blur (sigma ~ U[0.5, 2.0]), clamp and 1e-4 floor, mass normalisation, rescaling to participation ratio 0.197*H*W, mass normalisation again. Source and target digits are drawn independently."
+  },
+  "training": {
+    "entry_point": "viot.train_2d",
+    "original_entry_point": "fluidot_improved.train_2d",
+    "args": {
+      "resolution": 256,
+      "sampler": "mnist",
+      "batch-size": 4,
+      "lr": 0.0001,
+      "n-steps": 80000,
+      "n-rollout": 10,
+      "n-test": 20,
+      "n-infer-steps": 50,
+      "k-max": 0.25,
+      "arch": "fno",
+      "fno-width": 64,
+      "fno-modes": 32,
+      "fno-layers": 8,
+      "bb-visc-only": true,
+      "lambda-ke": 1.0,
+      "lambda-mu": 0.01,
+      "advection": "maccormack"
+    },
+    "steps": 80000,
+    "gpus": 1,
+    "global_batch_size": 4,
+    "optimizer": "Adam",
+    "lr_schedule": "cosine, 1e-4 -> 1e-6 over n-steps",
+    "grad_clip": 1.0,
+    "wall_time_s": 47191,
+    "hardware": "1x A100-80GB, torch 2.11.0+cu130",
+    "provenance": "original launch script scripts/launch_mnist_chinese_macc_kmax025.sh; training log exp50_mnist_kmax025_macc.log",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_2d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m viot.train_2d --resolution 256 --sampler mnist --batch-size 4 --lr 1e-4 --n-steps 80000 --n-rollout 10 --n-test 20 --n-infer-steps 50 --k-max 0.25 --arch fno --fno-width 64 --fno-modes 32 --fno-layers 8 --bb-visc-only --lambda-ke 1.0 --lambda-mu 0.01 --advection maccormack",
+    "release_script": "scripts/train/mnist_2d.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 64000,
+    "of_steps": 80000,
+    "source_experiment": "exp50_fno_mnist_256_mu001_kmax025_macc",
+    "source_file": "spectral_bb_visc_model_best.pt",
+    "source_sha256": "2870d062ba323dc1155fcab907b3acf3773534e9b7b8f9ad4186795e56867c6d",
+    "source_size_bytes": 537978710,
+    "file": "model.safetensors",
+    "sha256": "a6019fc156f228e14f6f6d09d929c89fff1d194f9d3f698d1337a16d30a2b1f2",
+    "size_bytes": 537957612,
+    "dtype": "float32",
+    "n_tensors": 75,
+    "n_params": 134454465,
+    "n_elements_incl_trunc_mask": 134487489,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 0.00124,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Fig. teaser, row 1 (MNIST chain 9->4->5->6->7, MacCormack, seed 5)",
+      "Fig. realtime_ui (interactive paint-chain GUI)",
+      "Fig. appendix_mnist, 'Ours' row",
+      "Sec. 5.2 MNIST chain number 0.0007 (rel. 0.083)",
+      "Table heldout (held-out evaluation; uses this checkpoint)",
+      "Table momentum_headline (momentum residual; uses this checkpoint)",
+      "Table infer_time (inference timing)",
+      "Table headline (architecture and loss coefficients of this run)"
+    ]
+  }
+}

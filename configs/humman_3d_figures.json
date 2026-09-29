@@ -1,0 +1,116 @@
+{
+  "name": "humman_3d_figures",
+  "description": "3D HuMMan human poses, 128^3: continuation of humman_3d used for the paper's HuMMan figures and HuMMan timing row (the HuMMan metrics use humman_3d)",
+  "dim": 3,
+  "arch": {
+    "class": "FNO3D",
+    "max_res": 128,
+    "k_max": 0.25,
+    "width": 32,
+    "n_modes": 16,
+    "n_layers": 6,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "semi_lagrangian",
+    "mass_renormalization": true,
+    "clamp_min": 0.0,
+    "notes": "First-order single-backtrace semi-Lagrangian advection, as used in training and in the trainer's evaluation. The evaluation rollout clamps and renormalises total mass every step; the training rollout with --peak-norm skipped the renormalisation."
+  },
+  "data": {
+    "sampler": "shapenet",
+    "data_path_src": "data/humman_volresize_n14000_128.pt",
+    "data_path_tgt": "data/humman_volresize_n14000_128.pt",
+    "n_src": 5000,
+    "n_tgt": 5000,
+    "resolution": 128,
+    "normalization": "peak",
+    "source": "5000 HuMMan SMPL poses (179 subjects)",
+    "notes": "Poses canonicalised (global orientation and translation removed), voxelized at 128^3, Gaussian blur sigma 0.7 voxel, resized to total mass 14000 ('n14000' is the target mass, not a sample count). Source and target are independently drawn poses. HuMMan and SMPL licences apply; the data is not shipped."
+  },
+  "training": {
+    "entry_point": "viot.train_3d",
+    "original_entry_point": "fluidot_improved.train_3d",
+    "args": {
+      "resolution": 128,
+      "sampler": "shapenet",
+      "data-path-src": "data/humman_volresize_n14000_128.pt",
+      "data-path-tgt": "data/humman_volresize_n14000_128.pt",
+      "batch-size": 6,
+      "lr": 5e-05,
+      "n-steps": 5000,
+      "n-rollout": 10,
+      "n-test": 10,
+      "n-infer-steps": 50,
+      "k-max": 0.25,
+      "fno-width": 32,
+      "fno-modes": 16,
+      "fno-layers": 6,
+      "bb-visc-only": true,
+      "lambda-ke": 0.0,
+      "lambda-mu": 0.007,
+      "lambda-mu-warmup": 0,
+      "lambda-terminal": 10.0,
+      "amp": true,
+      "checkpoint": true,
+      "log-every": 100,
+      "no-scheduler": true,
+      "grad-clip": 1.0,
+      "raw-sampler": true,
+      "peak-norm": true,
+      "init-from": "results_spectral_3d/exp59_humman_continue_ke0_1gpu/spectral_bb_visc_3d_model_best.pt",
+      "advection": "semi_lagrangian"
+    },
+    "steps": 5000,
+    "gpus": 1,
+    "global_batch_size": 6,
+    "optimizer": "Adam",
+    "lr_schedule": "constant (--no-scheduler)",
+    "grad_clip": 1.0,
+    "wall_time_s": 103037,
+    "hardware": "1x A100-80GB, torch 2.11.0+cu130",
+    "init": "continuation of humman_3d: --init-from pointed at the exp59 model_best file, which holds the same tensors as humman_3d/model.safetensors; trains 5000 more steps with lambda_mu 0.007 (humman_3d: 0.005), all other flags identical. --init-from loads all parameters except trunc_mask.",
+    "provenance": "original launch script scripts/_run_exp63_humman_mu0007.sh; training log exp63_humman_continue_mu0007_ke0_1gpu.log",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_3d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m viot.train_3d --resolution 128 --sampler shapenet --data-path-src data/humman_volresize_n14000_128.pt --data-path-tgt data/humman_volresize_n14000_128.pt --batch-size 6 --lr 5e-5 --n-steps 5000 --n-rollout 10 --n-test 10 --n-infer-steps 50 --k-max 0.25 --fno-width 32 --fno-modes 16 --fno-layers 6 --bb-visc-only --lambda-ke 0.0 --lambda-mu 0.007 --lambda-mu-warmup 0 --lambda-terminal 10.0 --amp --checkpoint --log-every 100 --no-scheduler --grad-clip 1.0 --raw-sampler --peak-norm --init-from results_spectral_3d/exp59_humman_continue_ke0_1gpu/spectral_bb_visc_3d_model_best.pt --advection semi_lagrangian",
+    "original_args_note": "Relative to the original launch command: --data-path-src .data/humman_volresize_n14000_128.pt -> data/humman_volresize_n14000_128.pt; --data-path-tgt .data/humman_volresize_n14000_128.pt -> data/humman_volresize_n14000_128.pt. Data files are expected under data/ (see scripts/data/README.md).",
+    "release_script": "scripts/train/humman_3d_figures.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 3000,
+    "of_steps": 5000,
+    "source_experiment": "exp63_humman_continue_mu0007_ke0_1gpu",
+    "source_file": "spectral_bb_visc_3d_model_best.pt",
+    "source_sha256": "18abf6e4679fb010bacb8ecfa042edcca74f9a3427126a9c1cef68fa232849d3",
+    "source_size_bytes": 810082953,
+    "file": "model.safetensors",
+    "sha256": "040accd9762da3b7445a2066170937687d88197aa6a2276e641661fe8539ecd1",
+    "size_bytes": 810066036,
+    "dtype": "float32",
+    "n_tensors": 59,
+    "n_params": 201450019,
+    "n_elements_incl_trunc_mask": 202514979,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 30.2355,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "relation": {
+    "continuation_of": "humman_3d",
+    "note": "Extra checkpoint shipped only so that the HuMMan figures can be reproduced. The HuMMan metrics in the paper (headline, held-out and momentum tables) use humman_3d."
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Fig. teaser, row 4 (HuMMan chain05)",
+      "Fig. appendix_humman_chains",
+      "Table infer_time (inference timing) (HuMMan row)",
+      "Whether model_best or the final weights produced the HuMMan figures was not recorded (the chains were written shortly after the run finished)",
+      "Not used for any HuMMan metric: Table headline / heldout / momentum_headline use humman_3d"
+    ]
+  }
+}

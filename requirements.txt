@@ -1,0 +1,12 @@
+torch>=2.0
+torchvision
+numpy
+safetensors
+huggingface_hub
+# optional: visualisation / GUIs / examples
+matplotlib
+Pillow
+imageio
+# optional: 3D data preparation
+# trimesh
+# scipy

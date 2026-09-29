@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "viot"
+version = "1.0.0"
+description = "VIOT: a variational optimal transport operator on incompressible flow"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Jinjin He" }, { name = "Shenyifan Lu" }, { name = "Sinan Wang" },
+  { name = "Zhiqi Li" }, { name = "Duowen Chen" }, { name = "Bo Zhu" },
+]
+dependencies = ["torch>=2.0", "torchvision", "numpy", "safetensors", "huggingface_hub"]
+
+[project.optional-dependencies]
+viz = ["matplotlib", "Pillow", "imageio"]
+data3d = ["trimesh", "scipy"]
+dev = ["pytest"]
+
+[project.urls]
+Paper = "https://arxiv.org/abs/2609.13729"
+Homepage = "https://jinjinhe2001.github.io/viot/"
+
+[tool.setuptools]
+packages = ["viot"]

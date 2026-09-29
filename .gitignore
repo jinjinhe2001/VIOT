@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+# datasets, runs and weights stay out of git
+/data/
+/.data/
+/runs/
+*.pt
+*.safetensors
+*.gif
+*.mp4
+*.npy
+*.vti

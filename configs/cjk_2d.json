@@ -1,0 +1,98 @@
+{
+  "name": "cjk_2d",
+  "description": "2D Chinese characters, 256^2",
+  "dim": 2,
+  "arch": {
+    "class": "FNO2D",
+    "max_res": 256,
+    "k_max": 0.25,
+    "width": 64,
+    "n_modes": 32,
+    "n_layers": 8,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "maccormack",
+    "mass_renormalization": true,
+    "clamp_min": 0.0
+  },
+  "data": {
+    "sampler": "pool",
+    "data_path": "data/chinese_chars_256.pt",
+    "n_samples": 9000,
+    "resolution": 256,
+    "normalization": "sum",
+    "source": "3000 CJK code points U+4E00..U+59B7 rendered in SimHei, Microsoft YaHei and SimSun (3 x 3000)",
+    "notes": "`--sampler chinese` is the generic pre-rendered pool sampler (independent random source/target indices, mass renormalised, no augmentation). Glyphs: interior 0.8*H, Gaussian blur sigma 8 px, 1e-5 floor, participation ratio 0.197*H*W. Built with generate_chinese_chars.py --resolution 256 --n-chars 3000. The fonts are Windows-bundled commercial fonts; neither the fonts nor the rasterised pool are redistributed."
+  },
+  "training": {
+    "entry_point": "viot.train_2d",
+    "original_entry_point": "fluidot_improved.train_2d",
+    "args": {
+      "resolution": 256,
+      "sampler": "pool",
+      "data-path": "data/chinese_chars_256.pt",
+      "batch-size": 4,
+      "lr": 0.0001,
+      "n-steps": 80000,
+      "n-rollout": 10,
+      "n-test": 20,
+      "n-infer-steps": 50,
+      "k-max": 0.25,
+      "arch": "fno",
+      "fno-width": 64,
+      "fno-modes": 32,
+      "fno-layers": 8,
+      "bb-visc-only": true,
+      "lambda-ke": 1.0,
+      "lambda-mu": 0.01,
+      "advection": "maccormack"
+    },
+    "steps": 80000,
+    "gpus": 1,
+    "global_batch_size": 4,
+    "optimizer": "Adam",
+    "lr_schedule": "cosine, 1e-4 -> 1e-6 over n-steps",
+    "grad_clip": 1.0,
+    "wall_time_s": 49856,
+    "hardware": "1x A100-80GB, torch 2.11.0+cu130",
+    "provenance": "original launch script scripts/launch_mnist_chinese_macc_kmax025.sh; training log exp51_chinese_kmax025_macc.log",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_2d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m viot.train_2d --resolution 256 --sampler pool --data-path data/chinese_chars_256.pt --batch-size 4 --lr 1e-4 --n-steps 80000 --n-rollout 10 --n-test 20 --n-infer-steps 50 --k-max 0.25 --arch fno --fno-width 64 --fno-modes 32 --fno-layers 8 --bb-visc-only --lambda-ke 1.0 --lambda-mu 0.01 --advection maccormack",
+    "original_args_note": "Relative to the original launch command: --sampler chinese -> pool (alias); --data-path .data/chinese_chars_256.pt -> data/chinese_chars_256.pt. Data files are expected under data/ (see scripts/data/README.md).",
+    "release_script": "scripts/train/cjk_2d.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 71000,
+    "of_steps": 80000,
+    "source_experiment": "exp51_fno_chinese_256_mu001_kmax025_macc",
+    "source_file": "spectral_bb_visc_model_best.pt",
+    "source_sha256": "f1914519aa63ef9cc76323f9da74f551ca2395880d30645f0ed7f1d403fb94be",
+    "source_size_bytes": 537978710,
+    "file": "model.safetensors",
+    "sha256": "7654e4108c1a60a38c3efd8558566faf107f1dd96dcb1ee3549caeb0dd2d85d0",
+    "size_bytes": 537957612,
+    "dtype": "float32",
+    "n_tensors": 75,
+    "n_params": 134454465,
+    "n_elements_incl_trunc_mask": 134487489,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 0.001452,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Table heldout (held-out evaluation; uses this checkpoint)",
+      "Table momentum_headline (momentum residual; uses this checkpoint)",
+      "Table headline (architecture and loss coefficients of this run)",
+      "Supplementary poem video (Chunjiang Huayue Ye chain)",
+      "Fig. appendix_cn_chunjiang: provenance unresolved (this model or an older k_max 0.0625 model); regenerating it with this checkpoint is recommended"
+    ]
+  }
+}

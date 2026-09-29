@@ -1,0 +1,103 @@
+{
+  "name": "mpeg7_2d",
+  "description": "2D MPEG-7 silhouettes, 256^2",
+  "dim": 2,
+  "arch": {
+    "class": "FNO2D",
+    "max_res": 256,
+    "k_max": 0.25,
+    "width": 64,
+    "n_modes": 32,
+    "n_layers": 8,
+    "time_dim": 128
+  },
+  "rollout": {
+    "n_steps": 50,
+    "advection": "maccormack",
+    "mass_renormalization": true,
+    "clamp_min": 0.0
+  },
+  "data": {
+    "sampler": "pool",
+    "data_path": "data/mpeg7_256_datamean_clean.pt",
+    "n_samples": 1294,
+    "resolution": 256,
+    "normalization": "sum",
+    "source": "MPEG-7 CE-Shape-1 (1400 binary silhouettes)",
+    "notes": "Classes pencil and watch skipped; vertical flip (row 0 at the bottom); tight crop, square pad with 10% margin, resize to 256; Gaussian blur sigma 0.008*H, 1e-5 floor; three passes to the dataset-mean participation ratio (measured PR fraction 0.244); samples with PR < 0.8*target dropped (1360 -> 1294). Built with prepare_mpeg7.py (exact command not archived). `--sampler chinese` is the generic pre-rendered pool sampler."
+  },
+  "training": {
+    "entry_point": "viot.train_2d",
+    "original_entry_point": "fluidot_improved.train_2d",
+    "args": {
+      "resolution": 256,
+      "sampler": "pool",
+      "data-path": "data/mpeg7_256_datamean_clean.pt",
+      "batch-size": 4,
+      "lr": 0.0001,
+      "n-steps": 80000,
+      "n-rollout": 10,
+      "n-test": 20,
+      "n-infer-steps": 50,
+      "k-max": 0.25,
+      "arch": "fno",
+      "fno-width": 64,
+      "fno-modes": 32,
+      "fno-layers": 8,
+      "bb-visc-only": true,
+      "lambda-ke": 1.0,
+      "lambda-mu": 0.01,
+      "advection": "maccormack"
+    },
+    "steps": 80000,
+    "gpus": 1,
+    "global_batch_size": 4,
+    "optimizer": "Adam",
+    "lr_schedule": "cosine, 1e-4 -> 1e-6 over n-steps",
+    "grad_clip": 1.0,
+    "wall_time_s": 68232,
+    "hardware": "1x A100-80GB, torch 2.11.0+cu130",
+    "provenance": "original launch script scripts/_run_exp70_mpeg7_kmax025_macc_mu001.sh; training log exp70_fno_mpeg7_256_kmax025_macc_mu001.log",
+    "args_note": "Flags of the original launch command (original entry point: fluidot_improved.train_2d). `--save-dir` is omitted; absolute data paths of the original run are rewritten relative to the repository root (data/...). `advection` is new in the release package and made explicit here; the original code hard-wired this scheme.",
+    "command": "python -m viot.train_2d --resolution 256 --sampler pool --data-path data/mpeg7_256_datamean_clean.pt --batch-size 4 --lr 1e-4 --n-steps 80000 --n-rollout 10 --n-test 20 --n-infer-steps 50 --k-max 0.25 --arch fno --fno-width 64 --fno-modes 32 --fno-layers 8 --bb-visc-only --lambda-ke 1.0 --lambda-mu 0.01 --advection maccormack",
+    "original_args_note": "Relative to the original launch command: --sampler chinese -> pool (alias); --data-path .data/mpeg7_256_datamean_clean.pt -> data/mpeg7_256_datamean_clean.pt. Data files are expected under data/ (see scripts/data/README.md).",
+    "release_script": "scripts/train/mpeg7_2d.sh"
+  },
+  "checkpoint": {
+    "selection": "model_best: lowest single-training-batch terminal loss among the checkpoints saved every 1000 steps (not a validation criterion)",
+    "step": 79000,
+    "of_steps": 80000,
+    "source_experiment": "exp70_fno_mpeg7_256_kmax025_macc_mu001",
+    "source_file": "spectral_bb_visc_model_best.pt",
+    "source_sha256": "921bb816bad67bafcb884adcccf909d5458aba8771c11fec163f4ca3821948a8",
+    "source_size_bytes": 537978710,
+    "file": "model.safetensors",
+    "sha256": "7bb86039b2f884de95983aa189023d35c36e849d463bdff88126fbcecf92deb5",
+    "size_bytes": 537957612,
+    "dtype": "float32",
+    "n_tensors": 75,
+    "n_params": 134454465,
+    "n_elements_incl_trunc_mask": 134487489,
+    "state_dict_note": "keys and tensors identical to the original .pt state_dict, including the trunc_mask buffer",
+    "end_of_training_eval_final_weights": {
+      "terminal_l2": 0.001161,
+      "note": "terminal L2 printed by the trainer's end-of-training evaluation (seed 42) on the final weights of this run, not on this checkpoint; useful as a reference when retraining"
+    }
+  },
+  "paper": {
+    "title": "A Variational Optimal Transport Operator on Incompressible Flow",
+    "arxiv": "2609.13729",
+    "used_for": [
+      "Fig. teaser, row 2 (MPEG-7 chain, WENO advection, seed 7)",
+      "Fig. mpeg7_grid (10x10 grid chain, WENO advection)",
+      "Fig. appendix_mpeg7, 'Ours' row",
+      "Fig. step_ablation (inference step count; checkpoint flag not logged)",
+      "Table heldout (held-out evaluation; uses this checkpoint)",
+      "Table momentum_headline (momentum residual; uses this checkpoint)",
+      "Table infer_time (inference timing)",
+      "Table headline (architecture and loss coefficients of this run)",
+      "Not used for: Fig. pipeline (made from this run's final-weight trainer rollout)",
+      "Not used for: the Sec. 5.2 MPEG-7 chain number 0.0023 (rel. 0.289), which came from a different (mu=0.02, k_max 0.0625) model"
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VIOT interactive demo</title>
+  <meta name="description" content="Draw a source and a target density; the VIOT operator transports one into the other with an incompressible flow, in your browser (WebGPU).">
+  <style>
+    :root { color-scheme: light; --ink: #20222a; --muted: #656773; --accent: #5845a3; --line: #e7e7ed; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fff; color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 16px; line-height: 1.6; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font: inherit; cursor: pointer; }
+    [hidden] { display: none !important; }
+    figure, p { margin: 0; }
+    main { width: min(1080px, calc(100% - 40px)); margin: 0 auto; padding: 36px 0 48px; }
+    h1 { margin: 0 0 8px; font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -.02em; text-align: center; }
+    .button { display: inline-flex; align-items: center; gap: 14px; padding: 8px 23px; border: 1px solid #dcdce4; border-radius: 24px; color: var(--ink); font-size: 15px; font-weight: 600; }
+    .button:hover { background: #f2f0f8; text-decoration: none; }
+    .button-primary { border-color: var(--ink); background: var(--ink); color: #fff; }
+    .button-primary:hover { background: #40374f; }
+    .text-button { background: transparent; color: var(--accent); border: 0; padding: 0; font-size: 14px; }
+    .text-button:hover { text-decoration: underline; }
+    .links { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 26px; }
+  </style>
+  <link rel="stylesheet" href="demo.css">
+  <script type="module" src="demo.js"></script>
+</head>
+<body>
+  <main>
+    <h1>VIOT: draw your own incompressible transport</h1>
+    <p class="demo-intro">Sketch a source and a target density. The trained operator predicts a divergence-free velocity at every step and transports the source into the target in 50 steps, entirely in your browser with WebGPU.</p>
+    <p class="links"><a href="https://arxiv.org/abs/2609.13729">Paper</a> · <a href="https://jinjinhe2001.github.io/viot/">Project page</a> · <a href="https://github.com/jinjinhe2001/VIOT">Code</a> · <a href="https://huggingface.co/jinjinhe2001/VIOT">Checkpoints</a></p>
+    <div class="viot-demo" id="viot-demo" data-weights="viot_mnist256_q4.safetensors, https://huggingface.co/jinjinhe2001/VIOT/resolve/main/web/viot_mnist256_q4.safetensors">
+        <div class="demo-panels">
+          <figure class="demo-panel">
+            <figcaption><span class="demo-label">ρ<sub>0</sub> Source</span><span class="demo-hint" id="demo-src-hint">draw here</span></figcaption>
+            <div class="demo-canvas-wrap"><canvas id="demo-src" width="512" height="512" aria-label="Source density: draw with the mouse, pen or finger"></canvas><span class="demo-placeholder">Draw a digit, letter or shape</span></div>
+          </figure>
+          <figure class="demo-panel">
+            <figcaption><span class="demo-label">ρ<sub>1</sub> Target</span><span class="demo-hint">draw here</span></figcaption>
+            <div class="demo-canvas-wrap"><canvas id="demo-tgt" width="512" height="512" aria-label="Target density: draw with the mouse, pen or finger"></canvas><span class="demo-placeholder">Draw the shape to transport into</span></div>
+          </figure>
+          <figure class="demo-panel demo-panel--out">
+            <figcaption><span class="demo-label">VIOT transport</span><span class="demo-hint" id="demo-step">step 0 / 50</span></figcaption>
+            <div class="demo-canvas-wrap">
+              <canvas id="demo-out" width="256" height="256" aria-label="Generated transport"></canvas>
+              <div class="demo-overlay" id="demo-overlay">
+                <p id="demo-overlay-text">The model (65&nbsp;MB) is downloaded once and cached by your browser.</p>
+                <div class="demo-progress" id="demo-progress" hidden><div id="demo-progress-bar"></div></div>
+                <button class="button" id="demo-load" type="button">Load the model</button>
+              </div>
+            </div>
+            <input class="demo-scrub" type="range" id="demo-scrub" min="0" max="50" value="0" disabled aria-label="Scrub through the transport steps">
+          </figure>
+        </div>
+        <div class="demo-controls">
+          <button class="button button-primary" id="demo-run" type="button">Run transport</button>
+          <button class="button" id="demo-continue" type="button" disabled>Continue chain</button>
+          <button class="button" id="demo-replay" type="button" disabled>Replay</button>
+          <span class="demo-sep" aria-hidden="true"></span>
+          <label class="demo-brush">Brush <input type="range" id="demo-brush" min="6" max="48" value="22"><output id="demo-brush-value">22 px</output></label>
+          <span class="demo-sep" aria-hidden="true"></span>
+          <button class="text-button" id="demo-clear-src" type="button">Clear source</button>
+          <button class="text-button" id="demo-clear-tgt" type="button">Clear target</button>
+          <button class="text-button" id="demo-reset" type="button">Reset</button>
+          <button class="text-button" id="demo-gif" type="button" disabled>Save GIF</button>
+        </div>
+        <div class="demo-examples" id="demo-examples"><span>Examples:</span></div>
+        <div class="demo-history" id="demo-history" aria-label="Keyframes of the current chain" hidden></div>
+        <p class="demo-status" id="demo-status" role="status"></p>
+      </div>
+    <p class="demo-note">Model: the paper's MNIST operator at 256&times;256 (FNO backbone, 8 layers), trained only on MNIST digit pairs; its spectral weights are stored in 4 bits (65&nbsp;MB, see <code>export_web.py</code>). Sketches are recentred, rescaled to fit inside the frame (thin strokes are drawn bolder rather than enlarged past it) and blurred to match the training densities. Serve this folder over HTTP (<code>python -m http.server</code>) and open it in a browser with WebGPU.</p>
+  </main>
+</body>
+</html>
